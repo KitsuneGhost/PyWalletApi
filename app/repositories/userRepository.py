@@ -1,0 +1,80 @@
+from app.extensions.extensions import db
+from app.models.user import User
+
+
+class UserRepository:
+
+    @staticmethod
+    def find_all():
+        """Returns a list of all users"""
+
+        try:
+            return User.query.all()
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_by_id(user_id):
+        """Returns a user with specific id"""
+
+        try:
+            return User.query.get(user_id)
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_by_email(email):
+        """Returns a user with specific email"""
+
+        try:
+            return User.query.filter_by(email=email).first()
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_by_username(username):
+        """Returns a user by a specific username"""
+
+        try:
+            return User.query.filter_by(username=username).first()
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def create(user):
+        """Creates a new user"""
+
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return user
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @staticmethod
+    def delete(user):
+        """Deletes a user"""
+
+        try:
+            db.session.delete(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @staticmethod
+    def update(user_id, data: dict):
+        """Updates a user"""
+
+        user = User.query.get(user_id)
+        if not user:
+            return None
+
+        # Update only the fields that exist in the model
+        for field, value in data.items():
+            if hasattr(User, field):  # check that field belongs to User model
+                setattr(user, field, value)
+
+        db.session.commit()
+        return user

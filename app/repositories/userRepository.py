@@ -8,37 +8,25 @@ class UserRepository:
     def get_all():
         """Returns a list of all users"""
 
-        try:
-            return User.query.all()
-        except Exception as e:
-            raise e
+        return User.query.all()
 
     @staticmethod
     def get_by_id(user_id: int):
         """Returns a user with specific id"""
 
-        try:
-            return User.query.get(user_id)
-        except Exception as e:
-            raise e
+        return User.query.get(user_id)
 
     @staticmethod
     def get_by_email(email):
         """Returns a user with specific email"""
 
-        try:
-            return User.query.filter_by(email=email).first()
-        except Exception as e:
-            raise e
+        return User.query.filter_by(email=email).first()
 
     @staticmethod
     def get_by_username(username: str):
         """Returns a user by a specific username"""
 
-        try:
-            return User.query.filter_by(username=username).first()
-        except Exception as e:
-            raise e
+        return User.query.filter_by(username=username).first()
 
     @staticmethod
     def create(user: User):

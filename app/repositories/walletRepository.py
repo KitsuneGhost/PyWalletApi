@@ -9,19 +9,13 @@ class WalletRepository:
     def get_all():
         """Returns a list of all wallets"""
 
-        try:
-            return Wallet.query.all()
-        except Exception as e:
-            raise e
+        return Wallet.query.all()
 
     @staticmethod
     def get_by_id(wallet_id: int):
         """Returns a wallet with a specific id"""
 
-        try:
-            return Wallet.query.get(wallet_id)
-        except Exception as e:
-            raise e
+        return Wallet.query.get(wallet_id)
 
     @staticmethod
     def filter_wallets(

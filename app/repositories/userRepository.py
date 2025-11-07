@@ -5,7 +5,7 @@ from app.models.user import User
 class UserRepository:
 
     @staticmethod
-    def find_all():
+    def get_all():
         """Returns a list of all users"""
 
         try:
@@ -14,7 +14,7 @@ class UserRepository:
             raise e
 
     @staticmethod
-    def get_by_id(user_id):
+    def get_by_id(user_id: int):
         """Returns a user with specific id"""
 
         try:
@@ -32,7 +32,7 @@ class UserRepository:
             raise e
 
     @staticmethod
-    def get_by_username(username):
+    def get_by_username(username: str):
         """Returns a user by a specific username"""
 
         try:
@@ -41,7 +41,7 @@ class UserRepository:
             raise e
 
     @staticmethod
-    def create(user):
+    def create(user: User):
         """Creates a new user"""
 
         try:
@@ -53,7 +53,7 @@ class UserRepository:
             raise e
 
     @staticmethod
-    def delete(user):
+    def delete(user: User):
         """Deletes a user"""
 
         try:
@@ -64,7 +64,7 @@ class UserRepository:
             raise e
 
     @staticmethod
-    def update(user_id, data: dict):
+    def update(user_id: int, data: dict):
         """Updates a user"""
 
         user = User.query.get(user_id)

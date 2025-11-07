@@ -10,7 +10,7 @@ class UserService:
     def get_all():
         """Returns all users"""
 
-        return UserRepository.find_all()
+        return UserRepository.get_all()
 
     @staticmethod
     def get_by_id(user_id):

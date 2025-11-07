@@ -2,9 +2,9 @@ from flask import Blueprint, jsonify, request
 from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError
 
-from app.schemas.userSchemas.UserCreateSchema import UserCreateSchema
-from app.schemas.userSchemas.UserResponseSchema import UserResponseSchema
-from app.schemas.userSchemas.UserUpdateSchema import UserUpdateSchema
+from app.schemas.userSchemas.userCreateSchema import UserCreateSchema
+from app.schemas.userSchemas.userResponseSchema import UserResponseSchema
+from app.schemas.userSchemas.userUpdateSchema import UserUpdateSchema
 from app.services.userService import UserService
 
 user_bp = Blueprint("user_bp", __name__, url_prefix='/users')

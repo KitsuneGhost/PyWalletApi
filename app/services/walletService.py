@@ -4,6 +4,13 @@ from app.services.userService import UserService
 
 
 class WalletService:
+
+    @staticmethod
+    def get_all():
+        """Returns a list of all wallets"""
+
+        return WalletRepository.get_all()
+
     @staticmethod
     def get_wallets_for_user(user_id, **filters):
         """Returns wallets filtered and sorted for a given user."""

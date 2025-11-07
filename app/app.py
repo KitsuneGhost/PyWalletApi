@@ -3,6 +3,7 @@ from flask import Flask
 from app.configs.config import Config
 from app.extensions.extensions import db, ma
 from app.routes.userRoutes import user_bp
+from app.routes.walletRoutes import wallet_bp
 
 
 def create_app():
@@ -14,6 +15,7 @@ def create_app():
     ma.init_app(app)
 
     app.register_blueprint(user_bp)
+    app.register_blueprint(wallet_bp)
 
     with app.app_context():
         db.create_all()

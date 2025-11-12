@@ -1,8 +1,8 @@
 from sqlalchemy.exc import IntegrityError
 
-from app.dto.userDto.userUpdateDto import UserUpdateDTO
+from app.dto.userDTOs import UserUpdateDTO
 from app.repositories.userRepository import UserRepository
-from app.dto.userDto.userCreateDto import UserCreateDTO
+from app.dto.userDTOs import UserCreateDTO
 from app.models.user import User
 
 

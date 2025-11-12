@@ -1,8 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 
 from app.repositories.transactionRepository import TransactionRepository
-from app.models.transaction import Transaction, TransactionType
-from app.extensions.extensions import db
+from app.models.transaction import Transaction
 from app.repositories.userRepository import UserRepository
 from app.repositories.walletRepository import WalletRepository
 

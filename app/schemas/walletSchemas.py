@@ -31,3 +31,34 @@ class WalletCreateSchema(ma.Schema):
         load_default="EUR")
 
     user_id = fields.Int(required=True)
+
+
+class WalletResponseSchema(ma.Schema):
+    """Schema for serializing wallet data in responses"""
+
+    id = fields.Int(dump_only=True)
+
+    name = fields.Str()
+
+    balance = fields.Decimal(
+        as_string=True,  # ensures JSON-safe serialization
+        places=2  # match db.Numeric(12, 2) precision
+    )
+    currency = fields.Str()
+
+    user_id = fields.Int(dump_only=True)
+
+
+class WalletUpdateSchema(ma.Schema):
+    """Schema for validating wallet update input (deserialization).
+    Does not support currency migrations"""
+
+    name = fields.Str(
+        validate=[
+            validate.Length(min=3, max=20),
+            validate.Regexp(r'^\S(.*\S)?$', error="Name cannot be blank or contain only spaces.")])
+
+    balance = fields.Decimal(
+        as_string=True,
+        places=2,
+        validate=validate.Range(min=0, error="Balance can't be negative"))

@@ -1,6 +1,6 @@
 from app.extensions.extensions import db
 from app.models.wallet import Wallet
-from sqlalchemy import and_, Numeric
+from sqlalchemy import and_
 
 
 class WalletRepository:

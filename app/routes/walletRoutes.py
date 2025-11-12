@@ -1,10 +1,8 @@
-from flask import Blueprint, jsonify, request
-from marshmallow import ValidationError
-from sqlalchemy.exc import IntegrityError
+from flask import Blueprint
 
-from app.schemas.walletSchemas.walletCreateSchema import WalletCreateSchema
-from app.schemas.walletSchemas.walletResponseSchema import WalletResponseSchema
-from app.schemas.walletSchemas.walletUpdateSchema import WalletUpdateSchema
+from app.schemas.walletSchemas import WalletCreateSchema
+from app.schemas.walletSchemas import WalletResponseSchema
+from app.schemas.walletSchemas import WalletUpdateSchema
 from app.services.walletService import WalletService
 
 wallet_bp = Blueprint("wallet_bp", __name__, url_prefix='/wallets')

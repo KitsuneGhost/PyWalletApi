@@ -38,13 +38,14 @@ class WalletResponseSchema(ma.Schema):
 
     id = fields.Int(dump_only=True)
 
-    name = fields.Str()
+    name = fields.Str(dump_only=True)
 
     balance = fields.Decimal(
-        as_string=True,  # ensures JSON-safe serialization
-        places=2  # match db.Numeric(12, 2) precision
+        as_string=True,     # ensures JSON-safe serialization
+        places=2,           # match db.Numeric(12, 2) precision
+        dump_only=True
     )
-    currency = fields.Str()
+    currency = fields.Str(dump_only=True)
 
     user_id = fields.Int(dump_only=True)
 

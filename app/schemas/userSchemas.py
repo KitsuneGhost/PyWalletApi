@@ -25,14 +25,10 @@ class UserResponseSchema(ma.Schema):
     """Schema for serializing user data in responses"""
 
     id = fields.Int(dump_only=True)
-
-    username = fields.Str()
-
-    email = fields.Email()
-
-    role = fields.Str()
-
-    created_at = fields.DateTime()
+    username = fields.Str(dump_only=True)
+    email = fields.Email(dump_only=True)
+    role = fields.Str(dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
 
 
 class UserUpdateSchema(ma.Schema):

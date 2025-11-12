@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from sqlalchemy import DateTime
+from datetime import datetime
 
 
 @dataclass
@@ -22,7 +22,7 @@ class UserResponseDTO:
     username: str
     email: str
     role: str
-    created_at: DateTime
+    created_at: datetime
 
 
 @dataclass

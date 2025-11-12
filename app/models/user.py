@@ -36,8 +36,3 @@ class User(db.Model):
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
-
-# for launching (SQLAlchemy doest recognize them unless imported anywhere)
-
-from app.models.wallet import Wallet
-from app.models.transaction import Transaction

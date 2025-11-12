@@ -59,10 +59,14 @@ class UserRepository:
         if not user:
             return None
 
-        # Update only the fields that exist in the model
-        for field, value in data.items():
-            if hasattr(User, field):  # check that field belongs to User model
-                setattr(user, field, value)
+        try:
+            # Update only valid fields and skip None
+            for field, value in data.items():
+                if value is not None and hasattr(User, field):
+                    setattr(user, field, value)
 
-        db.session.commit()
-        return user
+            db.session.commit()
+            return user
+        except Exception as e:
+            db.session.rollback()
+            raise e

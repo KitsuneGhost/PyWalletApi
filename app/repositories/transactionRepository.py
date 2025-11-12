@@ -25,10 +25,9 @@ class TransactionRepository:
         return Transaction.query.filter_by(user_id=user_id).all()
 
     @staticmethod
-    def create(data: dict):
+    def create(transaction: Transaction):
         """Generic create method — internal helper."""
 
-        transaction = Transaction(**data)
         db.session.add(transaction)
         db.session.commit()
         return transaction

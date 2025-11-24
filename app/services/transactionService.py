@@ -15,14 +15,14 @@ class TransactionService:
         return TransactionRepository.get_all()
 
     @staticmethod
-    def get_by_id(transaction_id):
+    def get_by_id(transaction_id: int):
         transaction = TransactionRepository.get_by_id(transaction_id)
         if not transaction:
             raise ValueError("This transaction does not exist")
         return transaction
 
     @staticmethod
-    def get_by_user(user_id):
+    def get_by_user(user_id: int):
         transactions = TransactionRepository.get_by_user(user_id)
         if not transactions:
             raise ValueError("This user does not exist")

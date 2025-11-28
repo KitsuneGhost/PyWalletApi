@@ -1,0 +1,81 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Byte-compiled / optimized / DLL files
+.Python
+pythonenv*
+pip-wheel-metadata/
+wheelhouse/
+
+# ---- Flask / SQLAlchemy ----
+instance/
+*.sqlite
+*.sqlite3
+*.db
+
+# Flask cache
+flask_session/
+.cache/
+
+# ---- Logs ----
+*.log
+*.out
+*.err
+
+# ---- Environment Variables ----
+.env
+.env.*
+*.secret
+secrets.env
+
+# ---- IDE / Editor ----
+# PyCharm / JetBrains
+.idea/
+*.iml
+
+# VSCode
+.vscode/
+
+# ---- OS-specific ----
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ---- Docker ----
+# Ignore bind-mounted data if any
+docker-data/
+docker-volumes/
+
+# ---- Coverage / Testing ----
+.coverage
+*.cover
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+pytestdebug.log
+
+# ---- Jupyter Notebooks (if any) ----
+.ipynb_checkpoints/

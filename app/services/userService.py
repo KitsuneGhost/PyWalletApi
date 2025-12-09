@@ -8,35 +8,33 @@ from app.models.user import User
 
 class UserService:
 
-    @staticmethod
-    def get_all():
+    def __init__(self, repository: UserRepository):
+        self.repository = repository
+
+    def get_all(self):
         """Returns all users"""
+        return self.repository.get_all()
 
-        return UserRepository.get_all()
-
-    @staticmethod
-    def get_by_id(user_id):
+    def get_by_id(self, user_id):
         """Returns a user with a specific id"""
 
-        user = UserRepository.get_by_id(user_id)
+        user = self.repository.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
         return user
 
-    @staticmethod
-    def get_by_email(data):
+    def get_by_email(self, data):
         """Returns a user with a specific email"""
 
-        user = UserRepository.get_by_email(data["email"])
+        user = self.repository.get_by_email(data["email"])
         if not user:
             raise ValueError("User not found")
         return user
 
-    @staticmethod
-    def create(dto: UserCreateDTO):
+    def create(self, dto: UserCreateDTO):
         """Creates a new user"""
 
-        if UserRepository.get_by_email(dto.email) or UserRepository.get_by_username(dto.username):
+        if self.repository.get_by_email(dto.email) or self.repository.get_by_username(dto.username):
             raise ValueError("User with this email or username already exists")
 
         new_user = User(
@@ -48,36 +46,34 @@ class UserService:
         new_user.set_password(dto.password)
 
         try:
-            UserRepository.create(new_user)
+            self.repository.create(new_user)
             return new_user
         except IntegrityError as e:
             raise ValueError("User with this email or username already exists") from e
 
-    @staticmethod
-    def delete(user_id: int):
+    def delete(self, user_id: int):
         """Deletes a user"""
 
-        user = UserRepository.get_by_id(user_id)
+        user = self.repository.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
-        UserRepository.delete(user)
+        self.repository.delete(user)
 
-    @staticmethod
-    def update(user_id: int, dto: UserUpdateDTO):
+    def update(self, user_id: int, dto: UserUpdateDTO):
         """Updates a user"""
 
-        existing_user = UserRepository.get_by_id(user_id)
+        existing_user = self.repository.get_by_id(user_id)
         if not existing_user:
             raise ValueError("User not found")
 
         # Prevent conflicts (optional safety)
         if dto.email is not None:
-            other = UserRepository.get_by_email(dto.email)
+            other = self.repository.get_by_email(dto.email)
             if other and other.id != user_id:
                 raise ValueError("Email already in use")
 
         if dto.username is not None:
-            other = UserRepository.get_by_username(dto.username)
+            other = self.repository.get_by_username(dto.username)
             if other and other.id != user_id:
                 raise ValueError("Username already in use")
 
@@ -88,5 +84,5 @@ class UserService:
             if value is not None
         }
 
-        updated_user = UserRepository.update(user_id, data)
+        updated_user = self.repository.update(user_id, data)
         return updated_user

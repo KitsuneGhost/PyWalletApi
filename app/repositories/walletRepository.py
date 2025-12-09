@@ -5,20 +5,21 @@ from sqlalchemy import and_
 
 class WalletRepository:
 
-    @staticmethod
-    def get_all():
+    def __init__(self, model: Wallet):
+        self.model = model
+
+    def get_all(self) -> Wallet | None:
         """Returns a list of all wallets"""
 
-        return Wallet.query.all()
+        return self.model.query.all()
 
-    @staticmethod
-    def get_by_id(wallet_id: int):
+    def get_by_id(self, wallet_id: int) -> Wallet | None:
         """Returns a wallet with a specific id"""
 
-        return Wallet.query.get(wallet_id)
+        return self.model.query.get(wallet_id)
 
-    @staticmethod
     def filter_wallets(
+            self,
             user_id=None,
             name=None,
             currency=None,
@@ -33,38 +34,38 @@ class WalletRepository:
     ):
         """Filters and paginates wallets"""
 
-        query = Wallet.query
+        query = self.model.query
         filters = []
 
         # conditional query
         if user_id is not None:
-            filters.append(Wallet.user_id == user_id)
+            filters.append(self.model.user_id == user_id)
         if name is not None:
-            filters.append(Wallet.name == name)
+            filters.append(self.model.name == name)
         if currency is not None:
-            filters.append(Wallet.currency == currency)
+            filters.append(self.model.currency == currency)
         if min_balance is not None:
-            filters.append(Wallet.balance >= min_balance)
+            filters.append(self.model.balance >= min_balance)
         if max_balance is not None:
-            filters.append(Wallet.balance <= max_balance)
+            filters.append(self.model.balance <= max_balance)
         if min_date is not None:
-            filters.append(Wallet.created_at >= min_date)
+            filters.append(self.model.created_at >= min_date)
         if max_date is not None:
-            filters.append(Wallet.created_at <= max_date)
+            filters.append(self.model.created_at <= max_date)
 
         if filters:
             query = query.filter(and_(*filters))
 
         # Sorting
-        sort_column = getattr(Wallet, sort_by, Wallet.created_at)
+        sort_column = getattr(self.model, sort_by, self.model.created_at)
         query = query.order_by(sort_column.desc() if order == "desc" else sort_column.asc())
 
         # Pagination
         paginated = query.paginate(page=page, per_page=per_page, error_out=False)
         return paginated
 
-    @staticmethod
-    def create(wallet: Wallet):
+
+    def create(self, wallet: Wallet) -> Wallet:
         """Creates a new wallet"""
 
         try:
@@ -75,8 +76,8 @@ class WalletRepository:
             db.session.rollback()
             raise e
 
-    @staticmethod
-    def delete(wallet: Wallet):
+
+    def delete(self, wallet: Wallet) -> None:
         """Deletes a wallet"""
 
         try:
@@ -86,8 +87,7 @@ class WalletRepository:
             db.session.rollback()
             raise e
 
-    @staticmethod
-    def update(wallet: Wallet, data: dict):
+    def update(self, wallet: Wallet, data: dict) -> Wallet | None:
         """Updates a wallet"""
 
         try:

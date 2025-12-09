@@ -4,34 +4,31 @@ from app.models.user import User
 
 class UserRepository:
 
-    @staticmethod
-    def get_all():
+    def __init__(self, model: User):
+        self.model = model
+
+    def get_all(self) -> list[User]:
         """Returns a list of all users"""
 
-        return User.query.all()
+        return self.model.query.all()
 
-    @staticmethod
-    def get_by_id(user_id: int):
+    def get_by_id(self, user_id: int) -> User | None:
         """Returns a user with specific id"""
 
-        return User.query.get(user_id)
+        return self.model.query.get(user_id)
 
-    @staticmethod
-    def get_by_email(email):
+    def get_by_email(self, email) -> User | None:
         """Returns a user with specific email"""
 
-        return User.query.filter_by(email=email).first()
+        return self.model.query.filter_by(email=email).first()
 
-    @staticmethod
-    def get_by_username(username: str):
+    def get_by_username(self, username: str) -> User | None:
         """Returns a user by a specific username"""
 
-        return User.query.filter_by(username=username).first()
+        return self.model.query.filter_by(username=username).first()
 
-    @staticmethod
-    def create(user: User):
-        """Creates a new user"""
-
+    def create(self, user: User) -> User:
+        """Persists a new user"""
         try:
             db.session.add(user)
             db.session.commit()
@@ -40,10 +37,8 @@ class UserRepository:
             db.session.rollback()
             raise e
 
-    @staticmethod
-    def delete(user: User):
+    def delete(self, user: User) -> None:
         """Deletes a user"""
-
         try:
             db.session.delete(user)
             db.session.commit()
@@ -51,18 +46,16 @@ class UserRepository:
             db.session.rollback()
             raise e
 
-    @staticmethod
-    def update(user_id: int, data: dict):
-        """Updates a user"""
-
-        user = User.query.get(user_id)
+    def update(self, user_id: int, data: dict) -> User | None:
+        """Updates a user with the given fields (skipping None values)"""
+        user = self.get_by_id(user_id)
         if not user:
             return None
 
         try:
             # Update only valid fields and skip None
             for field, value in data.items():
-                if value is not None and hasattr(User, field):
+                if value is not None and hasattr(user, field):
                     setattr(user, field, value)
 
             db.session.commit()

@@ -1,79 +1,75 @@
 from app.models.wallet import Wallet
+from app.repositories.userRepository import UserRepository
 from app.repositories.walletRepository import WalletRepository
-from app.services.userService import UserService
 
 
 class WalletService:
 
-    @staticmethod
-    def get_all():
+    def __init__(self, repository: WalletRepository, user_repository: UserRepository):
+        self.repository = repository
+        self.user_repository = user_repository
+
+    def get_all(self) -> list[Wallet]:
         """Returns a list of all wallets"""
 
-        return WalletRepository.get_all()
+        return self.repository.get_all()
 
-    @staticmethod
-    def get_wallets_for_user(user_id, **filters):
+    def get_wallets_for_user(self, user_id: int, **filters):
         """Returns wallets filtered and sorted for a given user."""
 
-        return WalletRepository.filter_wallets(user_id=user_id, **filters)
+        return self.repository.filter_wallets(user_id=user_id, **filters)
 
-    @staticmethod
-    def get_by_id(wallet_id, user_id):
+    def get_by_id(self, wallet_id: int, user_id: int) -> Wallet | None:
         """Return a wallet only if it belongs to the user."""
 
-        wallet = WalletRepository.get_by_id(wallet_id)
+        wallet = self.repository.get_by_id(wallet_id)
         if not wallet or wallet.user_id != user_id:
             raise ValueError("Wallet does not exist or does not belong to you")
         return wallet
 
-    @staticmethod
-    def create(user_id, name, currency="EUR"):
+    def create(self, user_id: int, name: str, currency="EUR") -> Wallet:
         """Creates a wallet for a user with user_id."""
 
-        if not UserService.get_by_id(user_id):
+        if not self.user_repository.get_by_id(user_id):
             raise ValueError("This user does not exist")
 
         wallet = Wallet(name=name, currency=currency, user_id=user_id)
-        return WalletRepository.create(wallet)
+        return self.repository.create(wallet)
 
-    @staticmethod
-    def delete(wallet_id, user_id):
+    def delete(self, wallet_id: int, user_id: int) -> None:
         """Deletes a wallet with id from a user with user_id.
         Only works if wallet """
 
-        wallet = WalletRepository.get_by_id(wallet_id)
+        wallet = self.repository.get_by_id(wallet_id)
         if not wallet and wallet.user_id != user_id:
             raise ValueError("This wallet does not exist or does not belong to you")
-        WalletRepository.delete(wallet)
+        self.repository.delete(wallet)
 
-    @staticmethod
-    def admin_delete(wallet_id):
+    def admin_delete(self, wallet_id: int) -> None:
         """Deletes a wallet with wallet_id.
         Requires ADMIN role"""
 
-        wallet = WalletRepository.get_by_id(wallet_id)
+        wallet = self.repository.get_by_id(wallet_id)
         if not wallet:
             raise ValueError("This wallet does not exist")
-        WalletRepository.delete(wallet)
+        self.repository.delete(wallet)
 
-    @staticmethod
-    def update(wallet_id, user_id, data):
+    def update(self, wallet_id: int, user_id: int, data) -> Wallet | None:
         """Updates a wallet with id of a user with user_id.
         Only works if a wallet belongs to the user with user_id"""
 
-        wallet = WalletRepository.get_by_id(wallet_id)
+        wallet = self.repository.get_by_id(wallet_id)
         if wallet and wallet.user_id == user_id:
-            WalletRepository.update(wallet, data)
+            self.repository.update(wallet, data)
             return
         else:
             raise ValueError("This wallet does not exist or belongs to somebody else")
 
-    @staticmethod
-    def admin_update(wallet_id, data):
+    def admin_update(self, wallet_id: int, data) -> Wallet | None:
         """Updates a wallet with a specific id.
         Only works for admins"""
 
-        wallet = WalletRepository.get_by_id(wallet_id)
+        wallet = self.repository.get_by_id(wallet_id)
         if not wallet:
             raise ValueError("This wallet does not exist")
-        return WalletRepository.update(wallet, data)
+        return self.repository.update(wallet, data)

@@ -8,34 +8,40 @@ from app.repositories.walletRepository import WalletRepository
 
 class TransactionService:
 
-    @staticmethod
-    def get_all():
+    def __init__(
+            self,
+            transaction_repository: TransactionRepository,
+            user_repository: UserRepository,
+            wallet_repository: WalletRepository
+    ):
+        self.transaction_repository = transaction_repository
+        self.user_repository = user_repository
+        self.wallet_repository = wallet_repository
+
+    def get_all(self) -> list[Transaction]:
         """Return all transactions."""
 
-        return TransactionRepository.get_all()
+        return self.transaction_repository.get_all()
 
-    @staticmethod
-    def get_by_id(transaction_id: int):
-        transaction = TransactionRepository.get_by_id(transaction_id)
+    def get_by_id(self, transaction_id: int) -> Transaction | None:
+        transaction = self.transaction_repository.get_by_id(transaction_id)
         if not transaction:
             raise ValueError("This transaction does not exist")
         return transaction
 
-    @staticmethod
-    def get_by_user(user_id: int):
-        transactions = TransactionRepository.get_by_user(user_id)
+    def get_by_user(self, user_id: int) -> Transaction | None:
+        transactions = self.transaction_repository.get_by_user(user_id)
         if not transactions:
             raise ValueError("This user does not exist")
         return transactions
 
-    @staticmethod
-    def create(data):
+    def create(self, data) -> Transaction:
 
-        if not UserRepository.get_by_id(data["user_id"]):
+        if not self.user_repository.get_by_id(data["user_id"]):
             raise ValueError("This user does not exist")
-        if not WalletRepository.get_by_id(data["to_wallet_id"]):
+        if not self.wallet_repository.get_by_id(data["to_wallet_id"]):
             raise ValueError("This wallet does not exist")
-        if not WalletRepository.get_by_id(data["from_wallet_id"]):
+        if not self.wallet_repository.get_by_id(data["from_wallet_id"]):
             raise ValueError("This wallet does not exist")
 
         new_transaction = Transaction(
@@ -45,7 +51,7 @@ class TransactionService:
             type=data["type"])
 
         try:
-            TransactionRepository.create(new_transaction)
+            self.transaction_repository.create(new_transaction)
             return new_transaction
         except IntegrityError as e:
             raise ValueError("User with this email or username already exists") from e

@@ -10,3 +10,10 @@ class Config:
         "DATABASE_URL"  # gets database url from env variable
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    JWT_SECRET = os.getenv(
+        "JWT_SECRET"
+    )
+    JWT_ISSUER = os.getenv(
+        "JWT_ISSUER"
+    )

@@ -1,18 +1,27 @@
 from datetime import datetime, timezone
 
+from app.auth.password_hasher import PasswordHasherService
 from app.auth.revocation_store import RevocationStore
 from app.auth.token_provider import TokenProvider
+from app.repositories.userRepository import UserRepository
 
 
 class AuthService:
-    def __init__(self, users_repo, hasher, tokens: TokenProvider, revocations: RevocationStore):
-        self.users = users_repo
+
+    def __init__(
+            self,
+            user_repository: UserRepository,
+            hasher: PasswordHasherService,
+            tokens: TokenProvider,
+            revocations: RevocationStore
+    ):
+        self.user_repository = user_repository
         self.hasher = hasher
         self.tokens = tokens
         self.revocations = revocations
 
     def login(self, email: str, password: str):
-        user = self.users.get_by_email(email)
+        user = self.user_repository.get_by_email(email)
         if not user or not self.hasher.verify(user.password_hash, password):
             raise ValueError("Invalid credentials")
 
@@ -34,7 +43,7 @@ class AuthService:
 
         # rotate refresh tokens (invalidate old, issue new)
         new_access, _ = self.tokens.create_access(payload["sub"])
-        new_refresh, new_rclaims = self.tokens.create_refresh(payload["sub"])
+        new_refresh, new_claims = self.tokens.create_refresh(payload["sub"])
 
         # Revoke old refresh jti
         exp = payload["exp"] - int(datetime.now(timezone.utc).timestamp())

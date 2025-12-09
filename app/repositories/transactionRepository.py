@@ -6,26 +6,25 @@ class TransactionRepository:
     """Handles database operations for Transaction model.
     Transactions are IMMUTABLE, therefore the is no update/delete methods"""
 
-    @staticmethod
-    def get_all():
+    def __init__(self, model: Transaction):
+        self.model = model
+
+    def get_all(self) -> list[Transaction]:
         """Return all transactions."""
 
-        return Transaction.query.all()
+        return self.model.query.all()
 
-    @staticmethod
-    def get_by_id(transaction_id: int):
+    def get_by_id(self, transaction_id: int) -> Transaction | None:
         """Return a single transaction by ID."""
 
-        return Transaction.query.get(transaction_id)
+        return self.model.query.get(transaction_id)
 
-    @staticmethod
-    def get_by_user(user_id: int):
+    def get_by_user(self, user_id: int) -> Transaction | None:
         """Return all transactions made by a specific user."""
 
-        return Transaction.query.filter_by(user_id=user_id).all()
+        return self.model.query.filter_by(user_id=user_id).all()
 
-    @staticmethod
-    def create(transaction: Transaction):
+    def create(self, transaction: Transaction) -> Transaction:
         """Generic create method — internal helper."""
 
         db.session.add(transaction)

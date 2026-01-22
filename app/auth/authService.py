@@ -24,6 +24,14 @@ class AuthService:
         self.revocations = revocations
 
     def login(self, username: str, password: str) -> dict:
+        """
+        logs user in
+
+        :param username: user's username
+        :param password: user's password
+        :return: dictionary with access and refresh tokens
+        """
+
         user = self.user_repo.get_by_username(username)  # fetching user from db
 
         # verifying credentials
@@ -39,6 +47,13 @@ class AuthService:
         }
 
     def refresh(self, refresh_token: str) -> dict:
+        """
+        refreshes tokens via revocations. Issues a new access and refresh tokens to a user
+
+        :param refresh_token: A refresh token
+        :return: a dictionary with access and refresh tokens
+        """
+
         # verifying token and extracting payload
         payload = self.token_provider.verify(refresh_token, expected_type="refresh")
 
@@ -55,7 +70,7 @@ class AuthService:
             raise InvalidCredentials("Invalid credentials!")
 
         # checking if refresh token is revoked
-        # raising InvalidCredentials instead of InvalidToken to prevent the leak of deatails
+        # raising InvalidCredentials instead of InvalidToken to prevent the leak of details
         if self.revocations.is_revoked(token_id):
             raise InvalidCredentials("Token is Revoked!")
 
@@ -70,3 +85,19 @@ class AuthService:
             "access_token": access_token,
             "refresh_token": new_refresh_token
         }
+
+    def logout(self, refresh_token: str) -> None:
+        """
+        Logs user out
+
+        :param refresh_token: refresh token
+        :return: None
+        """
+
+        # getting token payload
+        payload = self.token_provider.verify(refresh_token, expected_type="refresh")
+        token_id = payload["jti"]
+        expires_at = datetime.fromtimestamp(int(payload["exp"]), tz=timezone.utc)
+
+        # revoking the token
+        self.revocations.revoke(token_id, expires_at)

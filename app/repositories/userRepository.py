@@ -4,6 +4,8 @@ from app.models.user import User
 
 class UserRepository:
 
+    # TODO: use proper exceptions
+
     def __init__(self, model: User):
         self.model = model
 

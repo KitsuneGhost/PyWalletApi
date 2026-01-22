@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import timedelta, datetime, timezone
 import jwt
 import uuid
-from typing import Optional
 from app.exceptions.token_exceptions import TokenError, TokenExpired, TokenInvalid
 
 

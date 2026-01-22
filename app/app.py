@@ -2,6 +2,7 @@ from flask import Flask
 
 from app.configs.config import Config
 from app.extensions.extensions import db, ma
+from app.models.token_revocation import TokenRevocation
 
 # Models
 from app.models.transaction import Transaction
@@ -41,6 +42,7 @@ def create_app():
         user = User()
         wallet = Wallet()
         transaction = Transaction()
+        revocations = TokenRevocation()
 
         # --- repositories ---
         user_repository = UserRepository(user)

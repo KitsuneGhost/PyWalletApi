@@ -1,9 +1,5 @@
-from sqlalchemy.exc import IntegrityError
-
 from app.dto.userDTOs import UserUpdateDTO
 from app.repositories.userRepository import UserRepository
-from app.dto.userDTOs import UserCreateDTO
-from app.models.user import User
 
 
 class UserService:
@@ -30,26 +26,6 @@ class UserService:
         if not user:
             raise ValueError("User not found")
         return user
-
-    def create(self, dto: UserCreateDTO):
-        """Creates a new user"""
-
-        if self.repository.get_by_email(dto.email) or self.repository.get_by_username(dto.username):
-            raise ValueError("User with this email or username already exists")
-
-        new_user = User(
-            username=dto.username,
-            email=dto.email,
-            role=dto.role
-        )
-
-        new_user.set_password(dto.password)
-
-        try:
-            self.repository.create(new_user)
-            return new_user
-        except IntegrityError as e:
-            raise ValueError("User with this email or username already exists") from e
 
     def delete(self, user_id: int):
         """Deletes a user"""

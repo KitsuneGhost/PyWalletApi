@@ -5,16 +5,6 @@ from datetime import datetime
 
 
 @dataclass
-class UserCreateDTO:
-    """DTO for creating a new user"""
-
-    username: str
-    email: str
-    password: str
-    role: str
-
-
-@dataclass
 class UserResponseDTO:
     """DTO for user responses"""
 

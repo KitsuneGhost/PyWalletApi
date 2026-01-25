@@ -1,15 +1,20 @@
 from flask import Blueprint, jsonify, request, g
 from marshmallow import ValidationError
+from sqlalchemy.exc import IntegrityError
 
 from app.auth.authService import AuthService
 from app.auth.decorators import Decorator
+from app.auth.password_hasher import PasswordHasher
+from app.dto.authDTOs import RegisterDTO
 from app.exceptions.auth_exceptions import InvalidCredentials
 from app.exceptions.token_exceptions import TokenExpired, TokenInvalid
+from app.schemas.authSchemas import RegisterSchema
 
 
 def create_auth_routes(
         auth_service: AuthService,
-        decorator: Decorator
+        decorator: Decorator,
+        _register_schema: RegisterSchema | None = None,
 ) -> Blueprint:
     """
     Factory that builds the /auth blueprint with injected dependencies.
@@ -18,6 +23,9 @@ def create_auth_routes(
     """
 
     auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+    # Instantiate schema if not provided
+    register_schema = _register_schema or RegisterSchema()
 
     @auth_bp.post('/login')
     def login():
@@ -53,7 +61,7 @@ def create_auth_routes(
 
             # checking for empty fields
             if not refresh_token:
-                raise ValidationError('refresh_token is required')
+                raise ValidationError('refresh token is required')
 
             # refreshing token
             result = auth_service.refresh(refresh_token)
@@ -77,7 +85,7 @@ def create_auth_routes(
 
             # checking for empty fields
             if not refresh_token:
-                raise ValidationError('refresh_token is required')
+                raise ValidationError('refresh token is required')
 
             # logging out
             auth_service.logout(refresh_token)
@@ -98,5 +106,31 @@ def create_auth_routes(
         user = g.current_user
 
         return jsonify({"id": user.id, "username": user.username, "email": user.email}), 200
+
+    @auth_bp.post("/register")
+
+    def register():
+        data = request.get_json(silent=True) or {}
+
+        if not data:
+            return jsonify({"status": "error", "message": "No input data provided"}), 400
+
+        try:
+            # data validation
+            validated = register_schema.load(data)
+            # putting data into dto
+            reg_dto = RegisterDTO(**validated)
+            # registering user
+            result = auth_service.register(reg_dto)
+
+            return jsonify({"status": "success", **result}), 201
+
+
+        except ValidationError as err:
+            return jsonify({"status": "error", "message": err.messages}), 400
+        except ValueError as e:
+            return jsonify({"status": "error", "message": str(e)}), 400
+        except IntegrityError:
+            return jsonify({"status": "error", "message": "Duplicate email or username"}), 409
 
     return auth_bp

@@ -28,9 +28,11 @@ def create_auth_routes(
 
         try:
 
+            # checking for empty fields
             if not username or not password:
                 raise ValidationError('username or password is required')
 
+            # logging in
             result = auth_service.login(username, password)
 
             return jsonify(result), 200
@@ -49,9 +51,11 @@ def create_auth_routes(
 
         try:
 
+            # checking for empty fields
             if not refresh_token:
                 raise ValidationError('refresh_token is required')
 
+            # refreshing token
             result = auth_service.refresh(refresh_token)
 
             return jsonify(result), 200
@@ -71,9 +75,11 @@ def create_auth_routes(
 
         try:
 
+            # checking for empty fields
             if not refresh_token:
                 raise ValidationError('refresh_token is required')
 
+            # logging out
             auth_service.logout(refresh_token)
 
             return jsonify({'status': 'success', 'message': 'You have been logged out'}), 200
@@ -87,7 +93,10 @@ def create_auth_routes(
     @auth_bp.get("/me")
     @decorator.jwt_required()
     def me():
+
+        # getting current user
         user = g.current_user
+
         return jsonify({"id": user.id, "username": user.username, "email": user.email}), 200
 
     return auth_bp

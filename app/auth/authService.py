@@ -4,7 +4,6 @@ from app.auth.password_hasher import PasswordHasher
 from app.auth.revocation_store import RevocationStore
 from app.auth.token_provider import TokenProvider
 from app.exceptions.auth_exceptions import InvalidCredentials
-from app.exceptions.token_exceptions import TokenExpired
 from app.repositories.userRepository import UserRepository
 
 

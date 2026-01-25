@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import timedelta, datetime, timezone
 import jwt
 import uuid
-from app.exceptions.token_exceptions import TokenError, TokenExpired, TokenInvalid
+from app.exceptions.token_exceptions import TokenExpired, TokenInvalid
 
 
 @dataclass(frozen=True)   # Object Immutability

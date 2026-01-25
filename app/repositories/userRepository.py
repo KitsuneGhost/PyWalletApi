@@ -4,9 +4,7 @@ from app.models.user import User
 
 class UserRepository:
 
-    # TODO: use proper exceptions
-
-    def __init__(self, model: User):
+    def __init__(self, model: type[User]):
         self.model = model
 
     def get_all(self) -> list[User]:

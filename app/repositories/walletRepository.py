@@ -5,7 +5,7 @@ from sqlalchemy import and_
 
 class WalletRepository:
 
-    def __init__(self, model: Wallet):
+    def __init__(self, model: type[Wallet]):
         self.model = model
 
     def get_all(self) -> Wallet | None:

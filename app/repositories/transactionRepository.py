@@ -6,7 +6,7 @@ class TransactionRepository:
     """Handles database operations for Transaction model.
     Transactions are IMMUTABLE, therefore the is no update/delete methods"""
 
-    def __init__(self, model: Transaction):
+    def __init__(self, model: type[Transaction]):
         self.model = model
 
     def get_all(self) -> list[Transaction]:

@@ -79,3 +79,7 @@ pytestdebug.log
 
 # ---- Jupyter Notebooks (if any) ----
 .ipynb_checkpoints/
+
+# ---- Development ----
+.dev
+

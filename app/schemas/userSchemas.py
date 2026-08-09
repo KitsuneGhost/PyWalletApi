@@ -1,4 +1,4 @@
-from app.app import ma
+from app.extensions.extensions import ma
 from marshmallow import fields, validate
 
 
@@ -14,11 +14,8 @@ class UserCreateSchema(ma.Schema):
     password = fields.Str(
         required=True,
         load_only=True,
-        validate=validate.Length(min=8, max=32))
+        validate=validate.Length(min=12, max=128))
 
-    role = fields.Str(
-        validate=validate.OneOf(["USER", "ADMIN"]),
-        load_default="USER")
 
 
 class UserResponseSchema(ma.Schema):
@@ -40,6 +37,4 @@ class UserUpdateSchema(ma.Schema):
 
     password = fields.Str(
         load_only=True,
-        validate=validate.Length(min=8, max=32))
-
-    role = fields.Str(validate=validate.OneOf(["USER", "ADMIN"]))
+        validate=validate.Length(min=12, max=128))

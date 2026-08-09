@@ -16,7 +16,7 @@ class TransactionRepository:
     def get_by_id(transaction_id: int):
         """Return a single transaction by ID."""
 
-        return Transaction.query.get(transaction_id)
+        return db.session.get(Transaction, transaction_id)
 
     @staticmethod
     def get_by_user(user_id: int):

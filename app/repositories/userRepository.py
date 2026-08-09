@@ -14,13 +14,13 @@ class UserRepository:
     def get_by_id(user_id: int):
         """Returns a user with specific id"""
 
-        return User.query.get(user_id)
+        return db.session.get(User, user_id)
 
     @staticmethod
     def get_by_email(email):
         """Returns a user with specific email"""
 
-        return User.query.filter_by(email=email).first()
+        return User.query.filter(db.func.lower(User.email) == email.lower()).first()
 
     @staticmethod
     def get_by_username(username: str):
@@ -62,7 +62,7 @@ class UserRepository:
         try:
             # Update only valid fields and skip None
             for field, value in data.items():
-                if value is not None and hasattr(User, field):
+                if value is not None and field in {"username", "email"}:
                     setattr(user, field, value)
 
             db.session.commit()

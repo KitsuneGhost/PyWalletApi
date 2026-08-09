@@ -1,198 +1,126 @@
-from flask import Blueprint, jsonify, request
-from marshmallow import ValidationError
-from sqlalchemy.exc import IntegrityError
+from flask import Blueprint, current_app, jsonify, request
+from datetime import datetime, timezone
+from uuid import uuid4
 
-from app.dto.userDTOs import UserCreateDTO
-from app.dto.userDTOs import UserResponseDTO
-from app.dto.userDTOs import UserUpdateDTO
-from app.schemas.userSchemas import UserCreateSchema
-from app.schemas.userSchemas import UserResponseSchema
-from app.schemas.userSchemas import UserUpdateSchema
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
+from marshmallow import ValidationError
+
+from app.auth import admin_required, self_or_admin
+from app.extensions.extensions import db
+from app.models.tokenSession import TokenSession
+from app.dto.userDTOs import UserCreateDTO, UserUpdateDTO
+from app.schemas.userSchemas import UserCreateSchema, UserResponseSchema, UserUpdateSchema
 from app.services.userService import UserService
 
-user_bp = Blueprint("user_bp", __name__, url_prefix='/users')
-
+user_bp = Blueprint("user_bp", __name__, url_prefix="/users")
 user_response_schema = UserResponseSchema()
 users_response_schema = UserResponseSchema(many=True)
 user_create_schema = UserCreateSchema()
 user_update_schema = UserUpdateSchema()
 
 
-@user_bp.route("/", methods=["GET"])
+def error(message, status):
+    return jsonify(status="error", message=message), status
+
+
+@user_bp.post("/register")
+def register():
+    try:
+        data = user_create_schema.load(request.get_json(silent=True) or {})
+        user = UserService.create(UserCreateDTO(**data))
+        return jsonify(status="success", data=user_response_schema.dump(user)), 201
+    except ValidationError as exc:
+        return error(exc.messages, 400)
+    except ValueError as exc:
+        return error(str(exc), 409)
+
+
+@user_bp.post("/login")
+def login():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    password = data.get("password", "")
+    user = UserService.authenticate(email, password)
+    if not user:
+        return error("Invalid credentials", 401)
+    session_id = str(uuid4())
+    expires_at = datetime.now(timezone.utc) + current_app.config["JWT_REFRESH_TOKEN_EXPIRES"]
+    db.session.add(TokenSession(id=session_id, user_id=user.id, expires_at=expires_at))
+    db.session.commit()
+    claims = {"role": user.role, "sid": session_id}
+    return jsonify(
+        status="success",
+        access_token=create_access_token(identity=str(user.id), additional_claims=claims),
+        refresh_token=create_refresh_token(identity=str(user.id), additional_claims=claims),
+    ), 200
+
+
+@user_bp.post("/refresh")
+@jwt_required(refresh=True)
+def refresh():
+    user = UserService.get_by_id(int(get_jwt_identity()))
+    claims = {"role": user.role, "sid": get_jwt()["sid"]}
+    return jsonify(status="success", access_token=create_access_token(identity=str(user.id), additional_claims=claims)), 200
+
+
+@user_bp.post("/logout")
+@jwt_required(verify_type=False)
+def logout():
+    session = db.session.get(TokenSession, get_jwt()["sid"])
+    if session and session.revoked_at is None:
+        session.revoked_at = datetime.now(timezone.utc)
+        db.session.commit()
+    return "", 204
+
+
+@user_bp.get("/")
+@admin_required
 def get_all():
-
-    """
-    Returns a list of all users.
-    Validates data via Marshmallow schemas.
-    """
-
-    try:
-        # Fetch ORM users from service
-        users = UserService.get_all()
-
-        # Map ORM models -> DTOs
-        user_dtos = [
-            UserResponseDTO(
-                id=user.id,
-                username=user.username,
-                email=user.email,
-                role=user.role,
-                created_at=user.created_at
-            )
-            for user in users
-        ]
-
-        # Serialize DTOs -> JSON using Marshmallow
-        result = users_response_schema.dump(user_dtos, many=True)
-
-        return jsonify({'status': 'success', 'data': result}), 200
-
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    return jsonify(status="success", data=users_response_schema.dump(UserService.get_all())), 200
 
 
-@user_bp.route("/<int:user_id>", methods=["GET"])
+@user_bp.get("/me")
+@jwt_required()
+def me():
+    user = UserService.get_by_id(int(get_jwt_identity()))
+    return jsonify(status="success", data=user_response_schema.dump(user)), 200
+
+
+@user_bp.get("/<int:user_id>")
+@jwt_required()
 def get_by_id(user_id):
-
-    """
-    Returns a user with a specific id.
-    Validates data via Marshmallow schemas.
-    :param user_id: user ID
-    """
-
+    if not self_or_admin(user_id):
+        return error("Forbidden", 403)
     try:
-        # Fetch ORM users from service
-        user = UserService.get_by_id(user_id)
-
-        # Map ORM models -> DTOs
-        user_dto = UserResponseDTO(
-                id=user.id,
-                username=user.username,
-                email=user.email,
-                role=user.role,
-                created_at=user.created_at
-        )
-
-        # Serialize DTO -> JSON using Marshmallow
-        result = user_response_schema.dump(user_dto)
-
-        return jsonify({'status': 'success', 'data': result}), 200
-
-    except ValueError as e:
-        # Logical or service-level errors (e.g., user not found)
-        return jsonify({'status': 'error', 'message': str(e)}), 404
-
-    except Exception as e:
-        # unexpected server error
-        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
+        return jsonify(status="success", data=user_response_schema.dump(UserService.get_by_id(user_id))), 200
+    except ValueError as exc:
+        return error(str(exc), 404)
 
 
-@user_bp.route("/create", methods=["POST"])
-def create():
-
-    """
-    Creates and returns a new user.
-    Validates data via Marshmallow schemas.
-    """
-
-    json_data = request.get_json()
-    if not json_data:
-        return jsonify({'status': 'error', 'message': 'No input data provided'}), 400
-    try:
-        # Validate and deserialize input
-        validated_data = user_create_schema.load(json_data)
-
-        # Map dict -> DTO
-        user_dto = UserCreateDTO(**validated_data)
-
-        # Pass DTO to service
-        new_user = UserService.create(user_dto)
-
-        return jsonify({'status': 'success', 'message': {
-            'id': new_user.id,
-            'username': new_user.username,
-            'email': new_user.email,
-            'role': new_user.role
-        }}), 201
-
-    except ValidationError as err:
-        # Thrown by Marshmallow when .load() fails.
-        return jsonify({'status': 'error', 'message': err.messages}), 400
-
-    except ValueError as e:
-        # Thrown manually by UserService when something logical fails
-        return jsonify({'status': 'error', 'message': str(e)}), 400
-
-    except IntegrityError:
-        # when a database constraint fails
-        return jsonify({'status': 'error', 'message': 'Duplicate email or username'}), 409
-
-
-@user_bp.route("/<int:user_id>", methods=["PUT"])
+@user_bp.patch("/<int:user_id>")
+@jwt_required()
 def update(user_id):
-
-    """
-    Updates a user. Accepts updates to Username, Email, Password and Role.
-    Validates data via Marshmallow schemas.
-    :param user_id: User ID
-    """
-
-    json_data = request.get_json()
-
-    if not json_data:
-        return jsonify({'status': 'error', 'message': 'No input data provided'}), 400
-
+    if not self_or_admin(user_id):
+        return error("Forbidden", 403)
     try:
-        # Validate input using UserUpdateSchema
-        data = user_update_schema.load(json_data)
-
-        # Map dict -> DTO
-        user_upd_dto = UserUpdateDTO(**data)
-
-        # Pass validated data to service
-        upd_user = UserService.update(user_id, user_upd_dto)
-
-        # Map model -> UserResponseDTO
-        user_resp_dto = UserResponseDTO(
-            id=upd_user.id,
-            username=upd_user.username,
-            email=upd_user.email,
-            role=upd_user.role,
-            created_at=upd_user.created_at
-        )
-
-        # Serialize ResponseDTO -> JSON
-        result = user_response_schema.dump(user_resp_dto)
-
-        return jsonify({'status': 'success', 'data': result}), 200
-
-    except ValidationError as err:
-        # Marshmallow validation errors (field format, missing data, etc.)
-        return jsonify({'status': 'error', 'message': err.messages}), 400
-
-    except ValueError as e:
-        # Logical or service-level errors (e.g., user not found)
-        return jsonify({'status': 'error', 'message': str(e)}), 404
-
-    except IntegrityError:
-        # DB constraint violations (e.g., duplicate email)
-        return jsonify({'status': 'error', 'message': 'Database constraint error'}), 409
+        data = user_update_schema.load(request.get_json(silent=True) or {})
+        if not data:
+            return error("No valid fields provided", 400)
+        user = UserService.update(user_id, UserUpdateDTO(**data))
+        return jsonify(status="success", data=user_response_schema.dump(user)), 200
+    except ValidationError as exc:
+        return error(exc.messages, 400)
+    except ValueError as exc:
+        return error(str(exc), 409 if "use" in str(exc).lower() else 404)
 
 
-@user_bp.route("/<int:user_id>", methods=["DELETE"])
+@user_bp.delete("/<int:user_id>")
+@jwt_required()
 def delete(user_id):
-
-    """
-    Deletes a user.
-    Validates user_id before performing an operation
-    :param user_id: user ID
-    """
-
+    if not self_or_admin(user_id):
+        return error("Forbidden", 403)
     try:
-        # Delete user
         UserService.delete(user_id)
-        return jsonify({'status': 'success', 'message': 'User deleted successfully'}), 200
-
-    except ValueError as e:
-        # Logical or service-level errors (e.g., user not found)
-        return jsonify({'status': 'error', 'message': str(e)}), 404
+        return "", 204
+    except ValueError as exc:
+        return error(str(exc), 404)

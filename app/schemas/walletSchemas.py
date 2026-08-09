@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from app.app import ma
+from app.extensions.extensions import ma
 from marshmallow import fields, validate, pre_load
 
 
@@ -21,16 +21,10 @@ class WalletCreateSchema(ma.Schema):
             validate.Length(min=3, max=20),
             validate.Regexp(r'^\S(.*\S)?$', error="Name cannot be blank or contain only spaces.")])
 
-    balance = fields.Decimal(
-        as_string=True,
-        load_default=Decimal("0.00"),
-        validate=validate.Range(min=0, error="Balance can't be negative"))
-
     currency = fields.Str(
         validate=validate.OneOf(["EUR", "USD", "CHF", "RUB"]),
         load_default="EUR")
 
-    user_id = fields.Int(required=True)
 
 
 class WalletResponseSchema(ma.Schema):
@@ -48,6 +42,7 @@ class WalletResponseSchema(ma.Schema):
     currency = fields.Str(dump_only=True)
 
     user_id = fields.Int(dump_only=True)
+    active = fields.Bool(dump_only=True)
 
 
 class WalletUpdateSchema(ma.Schema):
@@ -58,8 +53,3 @@ class WalletUpdateSchema(ma.Schema):
         validate=[
             validate.Length(min=3, max=20),
             validate.Regexp(r'^\S(.*\S)?$', error="Name cannot be blank or contain only spaces.")])
-
-    balance = fields.Decimal(
-        as_string=True,
-        places=2,
-        validate=validate.Range(min=0, error="Balance can't be negative"))

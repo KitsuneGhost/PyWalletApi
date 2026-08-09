@@ -15,7 +15,7 @@ class WalletRepository:
     def get_by_id(wallet_id: int):
         """Returns a wallet with a specific id"""
 
-        return Wallet.query.get(wallet_id)
+        return db.session.get(Wallet, wallet_id)
 
     @staticmethod
     def filter_wallets(
@@ -34,7 +34,7 @@ class WalletRepository:
         """Filters and paginates wallets"""
 
         query = Wallet.query
-        filters = []
+        filters = [Wallet.active.is_(True)]
 
         # conditional query
         if user_id is not None:
@@ -93,7 +93,7 @@ class WalletRepository:
         try:
             # Update only the fields that exist in the model
             for field, value in data.items():
-                if hasattr(Wallet, field):  # check that field belongs to User model
+                if field == "name":
                     setattr(wallet, field, value)
             db.session.commit()
             return wallet

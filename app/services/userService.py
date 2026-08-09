@@ -9,6 +9,13 @@ from app.models.user import User
 class UserService:
 
     @staticmethod
+    def authenticate(email, password):
+        user = UserRepository.get_by_email(email)
+        if user and user.check_password(password):
+            return user
+        return None
+
+    @staticmethod
     def get_all():
         """Returns all users"""
 
@@ -36,14 +43,11 @@ class UserService:
     def create(dto: UserCreateDTO):
         """Creates a new user"""
 
-        if UserRepository.get_by_email(dto.email) or UserRepository.get_by_username(dto.username):
+        email = dto.email.strip().lower()
+        username = dto.username.strip()
+        if UserRepository.get_by_email(email) or UserRepository.get_by_username(username):
             raise ValueError("User with this email or username already exists")
-
-        new_user = User(
-            username=dto.username,
-            email=dto.email,
-            role=dto.role
-        )
+        new_user = User(username=username, email=email, role="USER")
 
         new_user.set_password(dto.password)
 
@@ -87,6 +91,13 @@ class UserService:
             for key, value in dto.__dict__.items()
             if value is not None
         }
+
+        if "email" in data:
+            data["email"] = data["email"].strip().lower()
+        if "username" in data:
+            data["username"] = data["username"].strip()
+        if "password" in data:
+            existing_user.set_password(data.pop("password"))
 
         updated_user = UserRepository.update(user_id, data)
         return updated_user

@@ -19,12 +19,17 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.Enum(TransactionType), nullable=False)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Foreign keys
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     from_wallet_id = db.Column(db.Integer, db.ForeignKey("wallets.id"), nullable=True)
     to_wallet_id = db.Column(db.Integer, db.ForeignKey("wallets.id"), nullable=True)
+
+    __table_args__ = (
+        db.CheckConstraint("amount > 0", name="ck_transaction_amount_positive"),
+        db.CheckConstraint("from_wallet_id IS NOT NULL OR to_wallet_id IS NOT NULL", name="ck_transaction_has_wallet"),
+    )
 
     # Relationships
     user = db.relationship("User", back_populates="transactions")

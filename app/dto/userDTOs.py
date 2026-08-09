@@ -11,7 +11,7 @@ class UserCreateDTO:
     username: str
     email: str
     password: str
-    role: str
+    role: str = "USER"
 
 
 @dataclass
